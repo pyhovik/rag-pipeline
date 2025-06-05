@@ -1,0 +1,8 @@
+llama-index==0.12.37
+llama-index-embeddings-huggingface
+llama-index-vector-stores-qdrant
+qdrant-client
+sentence-transformers
+beautifulsoup4
+requests
+torch

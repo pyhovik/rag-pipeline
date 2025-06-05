@@ -1,0 +1,18 @@
+# Основные зависимости
+llama-index-core==0.10.33
+llama-index-vector-stores-qdrant==0.10.33
+llama-index-embeddings-huggingface==0.10.33
+qdrant-client==1.14.2
+
+# Дополнительные зависимости для парсинга
+beautifulsoup4==4.12.3
+requests==2.32.3
+
+# Драйверы для HuggingFace
+sentence-transformers==2.7.0
+transformers==4.41.2
+torch==2.3.0
+
+# Вспомогательные пакеты
+tqdm==4.66.2  # Для progress bar
+python-dotenv==1.0.1  # Для загрузки переменных окружения (опционально)
