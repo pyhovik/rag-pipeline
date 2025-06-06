@@ -48,7 +48,7 @@ doc_splits = splitter.split_documents(docs)
 print(len(doc_splits))
 print(doc_splits[0])
 
-print("Сохранение веб-страницы в директорию /tmp ...")
+print("Save web-pages content into /tmp ...")
 # запись контента в файлы чтобы понимать, с какими данными вообще работаем
 for doc in docs:
     page_id = doc.metadata["source"].split("=")[1]
