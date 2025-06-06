@@ -2,6 +2,7 @@
 import os
 os.environ["USER_AGENT"] = "dima-test"
 
+import bs4
 from langchain_community.document_loaders import WebBaseLoader, AsyncHtmlLoader
 from langchain_community.document_transformers import Html2TextTransformer
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -16,18 +17,27 @@ SOURCE_URLS_FILE = RagConfig.SOURCE_URLS_FILE
 CHUNK_SIZE = RagConfig.CHUNK_SIZE
 CHUNK_OVERLAP = RagConfig.CHUNK_OVERLAP
 
-print("Documents load...")
+# print("Documents load via AsyncHtmlLoader...")
+# # загружаем список урлов для парсинга
+# with open(RagConfig.SOURCE_URLS_FILE) as f:
+#     urls = [line.strip() for line in f]
+# # парсим урлы - получаем список объектов Documents
+# loader = AsyncHtmlLoader(web_path=urls, verify_ssl=False)
+# loaded_docs = loader.load()
+# # преобразуем html в текст
+# html2text = Html2TextTransformer()
+# docs = html2text.transform_documents(loaded_docs)
+
+print("Documents load via WebBaseLoader...")
 # загружаем список урлов для парсинга
 with open(RagConfig.SOURCE_URLS_FILE) as f:
     urls = [line.strip() for line in f]
 # парсим урлы - получаем список объектов Documents
-loader = AsyncHtmlLoader(web_path=urls, verify_ssl=False)
-loaded_docs = loader.load()
-
-print("Documents transform...")
-# преобразуем html в текст
-html2text = Html2TextTransformer()
-docs = html2text.transform_documents(loaded_docs)
+loader = WebBaseLoader(
+    web_paths=urls,
+    bs_kwargs={"parse_only": bs4.SoupStrainer('div',{'id': 'main-content'})}    # выборочный парсинг страниц intdocs
+)
+docs = loader.load()
 
 print("Documents splitter init...")
 splitter = RecursiveCharacterTextSplitter(
@@ -41,7 +51,8 @@ print(doc_splits[0])
 print("Сохранение веб-страницы в директорию /tmp ...")
 # запись контента в файлы чтобы понимать, с какими данными вообще работаем
 for doc in docs:
-    with open(f"/tmp/{doc.metadata['title'].replace(' ', '_')}.txt", "w") as f:
+    page_id = doc.metadata["source"].split("=")[1]
+    with open(f"/tmp/{page_id}.txt", "w") as f:
         f.write(doc.page_content)
 
 print("Embeddings model init...")
