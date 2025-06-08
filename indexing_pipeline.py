@@ -45,8 +45,6 @@ splitter = RecursiveCharacterTextSplitter(
     chunk_overlap=CHUNK_OVERLAP
 )
 doc_splits = splitter.split_documents(docs)
-print(len(doc_splits))
-print(doc_splits[0])
 
 print("Save web-pages content into /tmp ...")
 # запись контента в файлы чтобы понимать, с какими данными вообще работаем
@@ -59,7 +57,10 @@ print("Embeddings model init...")
 embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
 print("Qdrant client init...")
-client = QdrantClient(":memory:")   # or QdrantClient(path="/tmp/qrant.db")ß
+client = QdrantClient(
+    #location = ":memory:",
+    path="/tmp/qrant.db"
+)
 if not client.collection_exists(COLLECTION_NAME):
     client.create_collection(
         collection_name=COLLECTION_NAME,
@@ -68,23 +69,11 @@ if not client.collection_exists(COLLECTION_NAME):
             distance=models.Distance.COSINE
         ),  # size and distance are model dependent
     )
+
+print("VectoreStore init...")
 vector_store = QdrantVectorStore(
     client=client,
     collection_name=COLLECTION_NAME,
     embedding=embeddings
 )
-
-# client.upload_collection(
-#     collection_name=collection_name,
-#     vectors=[models.Document(text=doc.page_content, model=model_name) for doc in docs],
-#     payload=[doc.metadata for doc in loaded_docs],
-# )
-# search_result = client.query_points(
-#     collection_name=collection_name,
-#     query=models.Document(
-#         text="What is ECCM?", 
-#         model=model_name
-#     )
-# )
-# for point in search_result.points:
-#     print(point.payload["title"], point.score)
+vector_store.add_documents(doc_splits)
