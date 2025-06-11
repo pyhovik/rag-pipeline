@@ -1,4 +1,10 @@
+from qdrant_client import QdrantClient
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_qdrant import QdrantVectorStore
+from langchain import hub
+from langchain_ollama import ChatOllama
 from config import RagConfig
+
 COLLECTION_NAME = RagConfig.COLLECTION_NAME
 EMBEDDING_MODEL = RagConfig.EMBEDDING_MODEL
 SOURCE_URLS_FILE = RagConfig.SOURCE_URLS_FILE
@@ -6,18 +12,15 @@ CHUNK_SIZE = RagConfig.CHUNK_SIZE
 CHUNK_OVERLAP = RagConfig.CHUNK_OVERLAP
 
 print("Qdrant client init...")
-from qdrant_client import QdrantClient
 client = QdrantClient(
     #location = ":memory:",
     path="/tmp/qrant.db"
 )
 
 print("Embeddings model init...")
-from langchain_huggingface import HuggingFaceEmbeddings
 embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
 print("VectoreStore init...")
-from langchain_qdrant import QdrantVectorStore
 vector_store = QdrantVectorStore(
     client=client,
     collection_name=COLLECTION_NAME,
@@ -25,11 +28,9 @@ vector_store = QdrantVectorStore(
 )
 
 print("Prompt init...")
-from langchain import hub
 prompt = hub.pull("rlm/rag-prompt")
 
 print("LLM init...")
-from langchain_ollama import ChatOllama
 llm = ChatOllama(
     model="gemma3:1b",
     temperature=0,
