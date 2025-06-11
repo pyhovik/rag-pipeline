@@ -32,7 +32,8 @@ print("LLM init...")
 from langchain_ollama import ChatOllama
 llm = ChatOllama(
     model="gemma3:1b",
-    temperature=0
+    temperature=0,
+    # base_url="http://100.110.2.78:11434"
 )
 
 question = input("What is your question?\n")
