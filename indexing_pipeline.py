@@ -1,32 +1,14 @@
 
 import os
-os.environ["USER_AGENT"] = "dima-test"
+os.environ["USER_AGENT"] = "indexing-pipeline"
 
 import bs4
-from langchain_community.document_loaders import WebBaseLoader, AsyncHtmlLoader
-from langchain_community.document_transformers import Html2TextTransformer
+from langchain_community.document_loaders import WebBaseLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient, models
 from config import RagConfig
-
-COLLECTION_NAME = RagConfig.COLLECTION_NAME
-EMBEDDING_MODEL = RagConfig.EMBEDDING_MODEL
-SOURCE_URLS_FILE = RagConfig.SOURCE_URLS_FILE
-CHUNK_SIZE = RagConfig.CHUNK_SIZE
-CHUNK_OVERLAP = RagConfig.CHUNK_OVERLAP
-
-# print("Documents load via AsyncHtmlLoader...")
-# # загружаем список урлов для парсинга
-# with open(RagConfig.SOURCE_URLS_FILE) as f:
-#     urls = [line.strip() for line in f]
-# # парсим урлы - получаем список объектов Documents
-# loader = AsyncHtmlLoader(web_path=urls, verify_ssl=False)
-# loaded_docs = loader.load()
-# # преобразуем html в текст
-# html2text = Html2TextTransformer()
-# docs = html2text.transform_documents(loaded_docs)
 
 print("Documents load via WebBaseLoader...")
 # загружаем список урлов для парсинга
@@ -41,8 +23,9 @@ docs = loader.load()
 
 print("Documents splitter init...")
 splitter = RecursiveCharacterTextSplitter(
-    chunk_size=CHUNK_SIZE,
-    chunk_overlap=CHUNK_OVERLAP
+    chunk_size=RagConfig.CHUNK_SIZE,
+    chunk_overlap=RagConfig.CHUNK_OVERLAP,
+     add_start_index=True,  # track index in original document   
 )
 doc_splits = splitter.split_documents(docs)
 
@@ -54,16 +37,16 @@ for doc in docs:
         f.write(doc.page_content)
 
 print("Embeddings model init...")
-embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+embeddings = HuggingFaceEmbeddings(model_name=RagConfig.EMBEDDING_MODEL)
 
 print("Qdrant client init...")
 client = QdrantClient(
     #location = ":memory:",
-    path="/tmp/qrant.db"
+    path="/tmp/qdrant.db"
 )
-if not client.collection_exists(COLLECTION_NAME):
+if not client.collection_exists(RagConfig.COLLECTION_NAME):
     client.create_collection(
-        collection_name=COLLECTION_NAME,
+        collection_name=RagConfig.COLLECTION_NAME,
         vectors_config=models.VectorParams(
             size=1024, # EMBEDDING_MODEL dimensions - размерность эмбеддинг-модели
             distance=models.Distance.COSINE
@@ -73,7 +56,7 @@ if not client.collection_exists(COLLECTION_NAME):
 print("VectoreStore init...")
 vector_store = QdrantVectorStore(
     client=client,
-    collection_name=COLLECTION_NAME,
+    collection_name=RagConfig.COLLECTION_NAME,
     embedding=embeddings
 )
 vector_store.add_documents(doc_splits)

@@ -10,11 +10,17 @@
 5. Получить из векторной БД документы (context), похожие на embed-request.
 6. Подать на вход LLM request и context, для получения ответа (response).
 
+# Как запускать
+
+1. Наполнить файл *source_urls.txt* ссылками на нужные статьи
+2. Запустить скрипт *indexing_pipeline.py*, который наполнит Qdrant эмбеддингами докуметов
+3. Запустить скрипт *inference_pipeline.py*, который является имплементацией чат-бота ИЛИ запустить чат-бота *chat_bot.py*
+
 # Как запустить модель из HuggingFace на Ollama
 
 [Документация Ollama](https://github.com/ollama/ollama/blob/main/docs/import.md)
 
-1) Установка зависимостей: 
+1. Установка зависимостей: 
 
 ```
 pip install --upgrade huggingface_hub

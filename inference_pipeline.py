@@ -5,25 +5,19 @@ from langchain import hub
 from langchain_ollama import ChatOllama
 from config import RagConfig
 
-COLLECTION_NAME = RagConfig.COLLECTION_NAME
-EMBEDDING_MODEL = RagConfig.EMBEDDING_MODEL
-SOURCE_URLS_FILE = RagConfig.SOURCE_URLS_FILE
-CHUNK_SIZE = RagConfig.CHUNK_SIZE
-CHUNK_OVERLAP = RagConfig.CHUNK_OVERLAP
-
 print("Qdrant client init...")
 client = QdrantClient(
     #location = ":memory:",
-    path="/tmp/qrant.db"
+    path="/tmp/qdrant.db"
 )
 
 print("Embeddings model init...")
-embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+embeddings = HuggingFaceEmbeddings(model_name=RagConfig.EMBEDDING_MODEL)
 
 print("VectoreStore init...")
 vector_store = QdrantVectorStore(
     client=client,
-    collection_name=COLLECTION_NAME,
+    collection_name=RagConfig.COLLECTION_NAME,
     embedding=embeddings
 )
 
@@ -32,19 +26,19 @@ prompt = hub.pull("rlm/rag-prompt")
 
 print("LLM init...")
 llm = ChatOllama(
-    model="gemma3:1b",
+    model=RagConfig.CHAT_MODEL,
     temperature=0,
     # base_url="http://100.110.2.78:11434"
 )
 
-question = input("What is your question?\n")
-retrieved_docs = vector_store.similarity_search(question)
-context = "\n\n".join(doc.page_content for doc in retrieved_docs)
-messages = prompt.invoke({"question": question, "context": context})
-response = llm.invoke(messages)
-print("Answer:\n", response.content)
-
-
+def get_answer(question: str) -> str:
+    retrieved_docs = vector_store.similarity_search(question)
+    context = "\n\n".join(doc.page_content for doc in retrieved_docs)
+    messages = prompt.invoke({"question": question, "context": context})
+    response = llm.invoke(messages)
+    print("Messages:\n", messages)
+    print("Answer:\n", response.content)
+    return response.content
 
 
 ## Код ниже использует LangGraph для создания rag-приложения
@@ -80,3 +74,12 @@ print("Answer:\n", response.content)
 
 # response = graph.invoke({"question": "What is ECCM?"})
 # print(response["answer"])
+
+
+if __name__ == "__main__":
+    question = input("What is your question?\n")
+    retrieved_docs = vector_store.similarity_search(question)
+    context = "\n\n".join(doc.page_content for doc in retrieved_docs)
+    messages = prompt.invoke({"question": question, "context": context})
+    response = llm.invoke(messages)
+    print("Answer:\n", response.content)
