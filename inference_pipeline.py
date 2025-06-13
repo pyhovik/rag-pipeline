@@ -36,8 +36,6 @@ def get_answer(question: str) -> str:
     context = "\n\n".join(doc.page_content for doc in retrieved_docs)
     messages = prompt.invoke({"question": question, "context": context})
     response = llm.invoke(messages)
-    print("Messages:\n", messages)
-    print("Answer:\n", response.content)
     return response.content
 
 
@@ -77,9 +75,13 @@ def get_answer(question: str) -> str:
 
 
 if __name__ == "__main__":
-    question = input("What is your question?\n")
+    question = "Что такое ECCM?"
     retrieved_docs = vector_store.similarity_search(question)
-    context = "\n\n".join(doc.page_content for doc in retrieved_docs)
-    messages = prompt.invoke({"question": question, "context": context})
-    response = llm.invoke(messages)
-    print("Answer:\n", response.content)
+    for doc in retrieved_docs:
+        print(doc.metadata, doc.score)
+        print(doc.page_content)
+        input()
+    # context = "\n\n".join(doc.page_content for doc in retrieved_docs)
+    # messages = prompt.invoke({"question": question, "context": context})
+    # response = llm.invoke(messages)
+    # print("Answer:\n", response.content)

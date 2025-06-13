@@ -1,17 +1,8 @@
-
-import os
-os.environ["USER_AGENT"] = "indexing-pipeline"
-
-import bs4
-from langchain_community.document_loaders import WebBaseLoader
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_qdrant import QdrantVectorStore
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient, models
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from config import RagConfig
 
-print("Embeddings model init...")
-embeddings = HuggingFaceEmbeddings(model_name=RagConfig.EMBEDDING_MODEL)
 
 print("Qdrant client init...")
 client = QdrantClient(
@@ -19,25 +10,21 @@ client = QdrantClient(
     path="/tmp/qdrant.db"
 )
 
+COLLECTION_NAME = "demo-collection"
+MODEL_NAME = "BAAI/bge-small-en"
+
 try:
-    client.delete_collection(RagConfig.COLLECTION_NAME)
+    client.delete_collection(COLLECTION_NAME)
 except:
-    print(f"{RagConfig.COLLECTION_NAME} does not exist")
+    print(f"{COLLECTION_NAME} does not exist")
 finally:
     client.create_collection(
-        collection_name=RagConfig.COLLECTION_NAME,
+        collection_name=COLLECTION_NAME,
         vectors_config=models.VectorParams(
-            size=1024, # EMBEDDING_MODEL dimensions - размерность эмбеддинг-модели
+            size=client.get_embedding_size(MODEL_NAME),
             distance=models.Distance.COSINE
         ),  # size and distance are model dependent
     )
-
-print("VectoreStore init...")
-vector_store = QdrantVectorStore(
-    client=client,
-    collection_name=RagConfig.COLLECTION_NAME,
-    embedding=embeddings
-)
 
 print("Documents splitter init...")
 splitter = RecursiveCharacterTextSplitter(
@@ -57,7 +44,12 @@ def load_doc_to_vectorstore(url: str) -> None:
     doc = loader.load()
     doc[0].metadata["title"] = doc[0].metadata["title"].split(" - Eltex Documentation")[0]
     doc_splits = splitter.split_documents(doc)
-    vector_store.add_documents(doc_splits)
+    print(models.Document)
+
+    # client.upload_collection(
+    #     collection_name=COLLECTION_NAME,
+    #     vectors=
+    # )    
     print(f"Document '{doc[0].metadata['title']}' was splitted ({len(doc_splits)}) and was loaded to vectore store")
 
 
