@@ -78,10 +78,22 @@ if __name__ == "__main__":
     question = "Что такое ECCM?"
     retrieved_docs = vector_store.similarity_search(question)
     for doc in retrieved_docs:
-        print(doc.metadata, doc.score)
-        print(doc.page_content)
-        input()
+        print(doc.metadata)
     # context = "\n\n".join(doc.page_content for doc in retrieved_docs)
     # messages = prompt.invoke({"question": question, "context": context})
     # response = llm.invoke(messages)
     # print("Answer:\n", response.content)
+
+    from qdrant_client.models import Document, VectorParams, Distance
+    MODEL_NAME = "BAAI/bge-small-en"
+    COLLECTION_NAME = "demo-collection"
+
+    search_result = client.query_points(
+        collection_name=COLLECTION_NAME,
+        query=Document(
+            text=question, 
+            model=MODEL_NAME
+        )
+    )
+    for point in search_result.points:
+        print(point.payload["title"], point.payload["start_index"])
