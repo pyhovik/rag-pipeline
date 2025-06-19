@@ -26,4 +26,7 @@ soup = bs4.BeautifulSoup(
     "html.parser",
     parse_only=bs4.SoupStrainer('div',{'id': 'main-content'})
     )
+import html2text
+text = html2text.html2text(html)
+print(text)
 print(f"Total characters: {len(soup.get_text())}")

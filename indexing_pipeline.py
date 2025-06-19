@@ -63,5 +63,8 @@ def load_doc_to_vectorstore(url: str) -> None:
 
 if __name__ == "__main__":
     with open(RagConfig.SOURCE_URLS_FILE) as f:
-        for url in f:
-            load_doc_to_vectorstore(url.strip())
+        urls = [url.strip() for url in f]
+    loader = WebBaseLoader(
+        web_patha=urls,
+        # bs_kwargs={"parse_only": bs4.SoupStrainer('div',{'id': 'main-content'})}    # выборочный парсинг страниц intdocs
+    )
